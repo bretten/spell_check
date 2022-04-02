@@ -9,8 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 
 /**
  * Uses a text file as a data source
@@ -28,8 +27,10 @@ public class FileWordRepository implements WordRepository {
 
     /**
      * The words loaded from the file
+     *
+     * HashSet allows fast lookup by hash for large collections and prevents duplicates
      */
-    private List<String> words;
+    private HashSet<String> words;
 
     /**
      * Returns all words using a file as a data source
@@ -37,7 +38,7 @@ public class FileWordRepository implements WordRepository {
      * @return Collection of all words as strings
      */
     @Override
-    public List<String> GetAllWords() {
+    public HashSet<String> GetAllWords() {
         if (words == null || words.isEmpty()) {
             LoadWords(); // Word list is static, so lazy load
         }
@@ -59,7 +60,7 @@ public class FileWordRepository implements WordRepository {
 //            e.printStackTrace();
 //        }
 
-        words = new ArrayList<>();
+        words = new HashSet<>();
         Resource resource = new ClassPathResource(path);
         try {
             InputStream resourceInputStream = resource.getInputStream();

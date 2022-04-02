@@ -2,7 +2,7 @@ package com.brettnamba.spellcheck.repositories;
 
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.HashSet;
 
 @Repository
 public interface WordRepository {
@@ -12,6 +12,6 @@ public interface WordRepository {
      *
      * @return Collection of words as strings
      */
-    List<String> GetAllWords();
+    HashSet<String> GetAllWords();
 
 }

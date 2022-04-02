@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
 
 @Service
 public class CharacterIteratorSpellCheckService implements SpellCheckService {
@@ -20,7 +20,7 @@ public class CharacterIteratorSpellCheckService implements SpellCheckService {
 
     @Override
     public SpellCheckResult CheckSpelling(String word) {
-        List<String> words = wordRepository.GetAllWords();
+        HashSet<String> words = wordRepository.GetAllWords();
 
         if (words.contains(word)) {
             return new SpellCheckResult(true, new ArrayList<>());
