@@ -2,8 +2,8 @@
 
 - [Docker](#Docker)
 - [Maven](#Maven)
-  - [Run using Maven](#Run using Maven)
-  - [Create build artifact and run with Java via command line](#Create build artifact and run with Java via command line)
+  - [Run using Maven](#run-using-maven)
+  - [Create build artifact and run with Java via command line](#Create-build-artifact-and-run-with-java-via-command-line)
 
 ## Docker
 Make sure [Docker Desktop](https://www.docker.com/) is installed.
