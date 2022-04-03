@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 @SpringBootTest
-public class CharacterIteratorSpellCheckServiceTests {
+public class PermutationSpellCheckServiceTests {
 
     @Test
     void checksWord() {
@@ -19,7 +19,7 @@ public class CharacterIteratorSpellCheckServiceTests {
         Mockito.when(wordRepository.GetAllWords()).thenReturn(new HashSet<>(Arrays.asList("word_1", "word_2", "word_3")));
 
         // Service
-        SpellCheckService s = new CharacterIteratorSpellCheckService(wordRepository);
+        SpellCheckService s = new PermutationSpellCheckService(wordRepository);
 
         // Execute
         String word = "word_2";

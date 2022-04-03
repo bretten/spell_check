@@ -2,7 +2,7 @@ package com.brettnamba.spellcheck.services;
 
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.HashSet;
 
 /**
  * Service to perform spell checking
@@ -39,9 +39,9 @@ public interface SpellCheckService {
          * <p>
          * If no suggestions could be found, this should be left empty. TODO: Instead add a flag to indicate no suggestions found?
          */
-        public List<String> Suggestions;
+        public HashSet<String> Suggestions;
 
-        public SpellCheckResult(boolean correct, List<String> suggestions) {
+        public SpellCheckResult(boolean correct, HashSet<String> suggestions) {
             Correct = correct;
             Suggestions = suggestions;
         }
