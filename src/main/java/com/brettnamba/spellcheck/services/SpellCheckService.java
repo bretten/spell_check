@@ -32,18 +32,18 @@ public interface SpellCheckService {
         /**
          * True if the input word was spelled correctly, otherwise false
          */
-        public boolean Correct;
+        public boolean correct;
 
         /**
          * If the input word was not spelled correctly, the service will attempt to offer suggestions.
          * <p>
-         * If no suggestions could be found, this should be left empty. TODO: Instead add a flag to indicate no suggestions found?
+         * If no suggestions could be found, this should be left empty.
          */
-        public HashSet<String> Suggestions;
+        public HashSet<String> suggestions;
 
         public SpellCheckResult(boolean correct, HashSet<String> suggestions) {
-            Correct = correct;
-            Suggestions = suggestions;
+            this.correct = correct;
+            this.suggestions = suggestions;
         }
     }
 

@@ -2,10 +2,10 @@ package com.brettnamba.spellcheck.controllers;
 
 import com.brettnamba.spellcheck.services.SpellCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Exposes the spell checker
@@ -33,14 +33,20 @@ public class SpellingController {
      * Exposes the spell checker service and checks the word in the URL path.
      *
      * @param word The word to check
-     * @return
+     * @return JSON Response. 200 if it was spelled correctly OR if it was misspelled but suggestions were found.
+     * Otherwise, 404 if no suggestions were found
      */
-    @GetMapping("/{word}")
-    public String hello(@PathVariable String word) {
+    @GetMapping(value = "/{word}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Object hello(@PathVariable String word, HttpServletResponse response) {
         SpellCheckService.SpellCheckResult result = spellCheckService.checkSpelling(word);
 
-        // TODO JSON response. Response status code 200 on success, 404 on word not found
-        return String.format("Word to lookup %s. Success = %s, Suggestions = %s",
-                word, result.Correct, String.join(", ", result.Suggestions));
+        // If the result was spelled correctly OR if it was misspelled but had suggestions, then return 200
+        if (result.correct || !result.suggestions.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        return result;
     }
 }

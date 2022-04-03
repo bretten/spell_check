@@ -26,8 +26,8 @@ public class PermutationSpellCheckServiceTests {
         SpellCheckService.SpellCheckResult result = s.checkSpelling(word);
 
         // Assert
-        assert result.Correct;
-        assert result.Suggestions.isEmpty();
+        assert result.correct;
+        assert result.suggestions.isEmpty();
     }
 
 }
