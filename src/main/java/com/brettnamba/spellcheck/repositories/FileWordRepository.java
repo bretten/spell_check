@@ -27,7 +27,7 @@ public class FileWordRepository implements WordRepository {
 
     /**
      * The words loaded from the file
-     *
+     * <p>
      * HashSet allows fast lookup by hash for large collections and prevents duplicates
      */
     private HashSet<String> words;
@@ -38,9 +38,9 @@ public class FileWordRepository implements WordRepository {
      * @return Collection of all words as strings
      */
     @Override
-    public HashSet<String> GetAllWords() {
+    public HashSet<String> getAllWords() {
         if (words == null || words.isEmpty()) {
-            LoadWords(); // Word list is static, so lazy load
+            loadWords(); // Word list is static, so lazy load
         }
         return words;
     }
@@ -48,7 +48,7 @@ public class FileWordRepository implements WordRepository {
     /**
      * Loads words from the configured file path
      */
-    private void LoadWords() {
+    private void loadWords() {
         // Did not work
 //        try {
 //            // Read the file configured by the path variable to load the words

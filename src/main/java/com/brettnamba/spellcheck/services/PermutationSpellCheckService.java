@@ -45,15 +45,15 @@ public class PermutationSpellCheckService implements SpellCheckService {
      * @return The spelling result, showing if the spelling was correct and any suggestions if it wasn't
      */
     @Override
-    public SpellCheckResult CheckSpelling(String word) {
+    public SpellCheckResult checkSpelling(String word) {
         // The dictionary of valid words
         if (this.dictionary == null || this.dictionary.isEmpty()) {
-            this.dictionary = this.wordRepository.GetAllWords();
+            this.dictionary = this.wordRepository.getAllWords();
         }
 
         // If the word is mixed case, it is considered misspelled, so look for suggestions
-        if (IsMixedCase(word)) {
-            return new SpellCheckResult(false, GetSuggestions(word.toLowerCase()));
+        if (isMixedCase(word)) {
+            return new SpellCheckResult(false, getSuggestions(word.toLowerCase()));
         }
 
         // We checked for mixed casing above. toLowerCase() here handles valid cases like Hello and HELLO, so we can check against the dictionary
@@ -62,7 +62,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
         }
 
         // The word was not found in the dictionary, so look for suggestions
-        return new SpellCheckResult(false, GetSuggestions(word.toLowerCase()));
+        return new SpellCheckResult(false, getSuggestions(word.toLowerCase()));
     }
 
     /**
@@ -73,7 +73,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
      * @param word The word to check for mixed casing
      * @return True if there is mixed casing, otherwise false
      */
-    private boolean IsMixedCase(String word) {
+    private boolean isMixedCase(String word) {
         if (word.length() <= 1) {
             return false;
         }
@@ -104,9 +104,9 @@ public class PermutationSpellCheckService implements SpellCheckService {
      * @param word The word to get suggestions for
      * @return A collection of suggestion words
      */
-    private HashSet<String> GetSuggestions(String word) {
+    private HashSet<String> getSuggestions(String word) {
         // Get all the possible permutations of the word using repeating characters and vowels
-        HashSet<String> allPermutations = GetAllPermutationsOfWord(word);
+        HashSet<String> allPermutations = getAllPermutationsOfWord(word);
 
         // Check each permutation to see if it exists in our word dictionary
         HashSet<String> suggestions = new HashSet<>();
@@ -140,7 +140,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
      * @param word The word to get all permutations for
      * @return A collection of all permutations of the word
      */
-    public HashSet<String> GetAllPermutationsOfWord(String word) {
+    private HashSet<String> getAllPermutationsOfWord(String word) {
         // Iterate over each character and find the indexes where a character repeats
         List<Integer> repeatIndexes = new ArrayList<>(); // Indexes of any repeating characters
         StringBuilder b = new StringBuilder(); // Will hold the word, but with no repeating characters
@@ -168,7 +168,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
         // Will hold the collection of unique permutations of the word
         HashSet<String> permutations = new HashSet<>();
         // Add all permutations of the word as is (without repeating characters)
-        permutations.addAll(GetAllPermutationsWithAndWithoutVowels(b.toString()));
+        permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.toString()));
 
         // Iterate over the StringBuilder (which has no repeating chars)
         for (int i = 0; i < b.length(); i++) {
@@ -178,7 +178,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
             // If the character repeats, add all permutations of it repeating
             if (isRepeatingCharacter) {
                 // Add all permutations with the character repeated twice (we won't exceed repeating twice -- see method comment)
-                permutations.addAll(GetAllPermutationsWithAndWithoutVowels(b.substring(0, i) + c + b.substring(i, b.length())));
+                permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.substring(0, i) + c + b.substring(i, b.length())));
                 // We also need permutations of the repeating character with other repeating characters
                 // TODO: Can this be done recursively?
                 for (int fr : repeatIndexes) { // Check all the other repeating characters (the indexes of them)
@@ -186,8 +186,8 @@ public class PermutationSpellCheckService implements SpellCheckService {
                         continue;
                     }
                     // Add all permutations with the character repeated twice (along with the permutations of the other repeating characters limited to 2)
-                    permutations.addAll(GetAllPermutationsWithAndWithoutVowels(b.substring(0, i) + b.substring(i, fr) + b.charAt(fr) + b.substring(fr, b.length())));
-                    permutations.addAll(GetAllPermutationsWithAndWithoutVowels(b.substring(0, i) + c + b.substring(i, fr) + b.charAt(fr) + b.substring(fr, b.length())));
+                    permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.substring(0, i) + b.substring(i, fr) + b.charAt(fr) + b.substring(fr, b.length())));
+                    permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.substring(0, i) + c + b.substring(i, fr) + b.charAt(fr) + b.substring(fr, b.length())));
                 }
             }
         }
@@ -217,7 +217,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
      * @param s The string to get all permutations with and without vowels
      * @return A collection of vowel permutations
      */
-    private List<String> GetAllPermutationsWithAndWithoutVowels(String s) {
+    private List<String> getAllPermutationsWithAndWithoutVowels(String s) {
         List<String> vowelPermutations = new ArrayList<>();
         vowelPermutations.add(s); // Add the case without any vowels
 

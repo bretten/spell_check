@@ -23,12 +23,12 @@ public interface SpellCheckService {
      * @param word The word to check the spelling of
      * @return A result object indicating if the spelling was correct and possible spelling suggestions if it was not
      */
-    SpellCheckResult CheckSpelling(String word);
+    SpellCheckResult checkSpelling(String word);
 
     /**
      * Result that any implementation of SpellCheckService should use as the output of a spell check
      */
-    public class SpellCheckResult {
+    class SpellCheckResult {
         /**
          * True if the input word was spelled correctly, otherwise false
          */

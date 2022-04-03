@@ -12,6 +12,6 @@ public interface WordRepository {
      *
      * @return Collection of words as strings
      */
-    HashSet<String> GetAllWords();
+    HashSet<String> getAllWords();
 
 }

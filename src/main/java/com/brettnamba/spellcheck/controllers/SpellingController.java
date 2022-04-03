@@ -37,7 +37,7 @@ public class SpellingController {
      */
     @GetMapping("/{word}")
     public String hello(@PathVariable String word) {
-        SpellCheckService.SpellCheckResult result = spellCheckService.CheckSpelling(word);
+        SpellCheckService.SpellCheckResult result = spellCheckService.checkSpelling(word);
 
         // TODO JSON response. Response status code 200 on success, 404 on word not found
         return String.format("Word to lookup %s. Success = %s, Suggestions = %s",
