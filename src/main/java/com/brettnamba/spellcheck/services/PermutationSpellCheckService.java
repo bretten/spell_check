@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Given a word, will get all permutations of the word made possible by repeating characters AND missing vowels.
@@ -62,7 +63,7 @@ public class PermutationSpellCheckService implements SpellCheckService {
         }
 
         // The word was not found in the dictionary, so look for suggestions
-        return new SpellCheckResult(false, getSuggestions(word.toLowerCase()));
+        return new SpellCheckResult(false, getSuggestions(word));
     }
 
     /**
@@ -141,55 +142,32 @@ public class PermutationSpellCheckService implements SpellCheckService {
      * @return A collection of all permutations of the word
      */
     private HashSet<String> getAllPermutationsOfWord(String word) {
-        // Iterate over each character and find the indexes where a character repeats
-        List<Integer> repeatIndexes = new ArrayList<>(); // Indexes of any repeating characters
-        StringBuilder b = new StringBuilder(); // Will hold the word, but with no repeating characters
+        // We have already checked if the string has mixed casing, so we can force lowercase here
+        word = word.toLowerCase();
+
+        // Iterate over each character and create a collection of all characters. If a character repeats,
+        // flag that it repeats
+        List<RepeatingCharacter> characters = new ArrayList<>(); // Collection of the characters in order
         char lastChar = 0; // So we know the last character in the next iteration
-        boolean recordedRepeatingIndex = false; // Flag to indicate we are currently iterating over repeating characters
         for (int i = 0; i < word.length(); i++) {
             char currentChar = word.charAt(i);
 
-            // Record the index of the repeating character
-            if (lastChar == currentChar && !recordedRepeatingIndex) { // We are on the second character of a repeating character sequence
-                repeatIndexes.add(b.length() - 1); // The beginning of the repeating character sequence was the last char
-                recordedRepeatingIndex = true; // Indicate we have recorded the index
-                continue;
-            } else if (lastChar == currentChar) { // We are on the 2 + n character of a repeating character sequence
-                continue; // No action needed
+            if (currentChar != lastChar) {
+                // The first time we are seeing this character, so add it to the collection
+                characters.add(new RepeatingCharacter(Character.toString(currentChar), false));
+            } else {
+                // We saw this character last time, so flag the last character in the collection as repeating
+                characters.get(characters.size() - 1).repeats = true;
             }
-
-            recordedRepeatingIndex = false; // The repeating character sequence has stopped, so reset the flag
-
-            b.append(currentChar); // Add each character from the word to the builder (won't record repeating characters)
 
             lastChar = currentChar; // So we know the last character in the next iteration
         }
 
         // Will hold the collection of unique permutations of the word
         HashSet<String> permutations = new HashSet<>();
-        // Add all permutations of the word as is (without repeating characters)
-        permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.toString()));
-
-        // Iterate over the StringBuilder (which has no repeating chars)
-        for (int i = 0; i < b.length(); i++) {
-            char c = b.charAt(i); // The current character
-            boolean isRepeatingCharacter = repeatIndexes.contains(i); // Was this character repeating in the original word?
-
-            // If the character repeats, add all permutations of it repeating
-            if (isRepeatingCharacter) {
-                // Add all permutations with the character repeated twice (we won't exceed repeating twice -- see method comment)
-                permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.substring(0, i) + c + b.substring(i, b.length())));
-                // We also need permutations of the repeating character with other repeating characters
-                // TODO: Can this be done recursively?
-                for (int fr : repeatIndexes) { // Check all the other repeating characters (the indexes of them)
-                    if (fr <= i) { // We can skip over any repeating characters before the current character
-                        continue;
-                    }
-                    // Add all permutations with the character repeated twice (along with the permutations of the other repeating characters limited to 2)
-                    permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.substring(0, i) + b.substring(i, fr) + b.charAt(fr) + b.substring(fr, b.length())));
-                    permutations.addAll(getAllPermutationsWithAndWithoutVowels(b.substring(0, i) + c + b.substring(i, fr) + b.charAt(fr) + b.substring(fr, b.length())));
-                }
-            }
+        // Find all permutations of the string (the character collection) with and without vowels
+        for (char vowel : VOWELS) {
+            addPermutationsWithAndWithoutVowels(vowel, "", new RepeatingCharacterCollection(characters), permutations);
         }
 
         // The above method did not add vowels to the end, so we need to consider missing vowels on the end of each permutation
@@ -205,27 +183,93 @@ public class PermutationSpellCheckService implements SpellCheckService {
     }
 
     /**
-     * Given a string, will get all permutations of the string without vowels and with each vowel before each character
+     * Recursive method to find all permutations of the string with and without vowels before each character.
+     * Rather than taking in a string directly as input, the input is a collection of characters with a flag indicating
+     * if that character consecutively repeats in the original string.
      * <p>
-     * Given the string "www", it will return the following:
-     * (a)www, w(a)ww, ww(a) (and the rest for the other vowels)
-     * TODO: But it still needs to do every permutation of every vowel, such as:
-     * (a)w(a)ww, (a)w(e)ww, (a)w(i)ww, (a)w(o)ww, (a)w(u)ww, ..., and so on
+     * It will iterate over each item in the collection and combine the part that has been iterated over (the prefix)
+     * with the part yet to be iterated over (still in the form of a collection). In other words, it will join the
+     * collection into a string with and without vowels.
      * <p>
-     * TODO: This can be handled with a recursive method
+     * Note that we let the vowel only repeat twice due to the assumption that a letter in the English language can't repeat more than twice consecutively
      *
-     * @param s The string to get all permutations with and without vowels
-     * @return A collection of vowel permutations
+     * @param v                 The current vowel to add
+     * @param prefix            The prefix used to append to the joined string (recursively will be each part of the collection, eg: abcd => a,bcd -> ab,cd -> abc,d -> abcd)
+     * @param s                 The collection of characters we are iterating over
+     * @param vowelPermutations All permutations of the string with and without vowels before each character
      */
-    private List<String> getAllPermutationsWithAndWithoutVowels(String s) {
-        List<String> vowelPermutations = new ArrayList<>();
-        vowelPermutations.add(s); // Add the case without any vowels
+    public static void addPermutationsWithAndWithoutVowels(char v, String prefix, RepeatingCharacterCollection s, HashSet<String> vowelPermutations) {
+        vowelPermutations.add(prefix + s.toString());
+        if (s.parts.size() == 0) {
+            return;
+        }
+        for (char vowel : VOWELS) {
+            RepeatingCharacter firstItem = s.getFirstItem();
+            String firstCharacter = firstItem != null ? firstItem.c : "";
+            // Permutations without any vowels
+            addPermutationsWithAndWithoutVowels(vowel, prefix + firstCharacter, s.cloneItemsAfter(1), vowelPermutations);
+            // Permutations with a single vowel
+            addPermutationsWithAndWithoutVowels(vowel, prefix + v + firstCharacter, s.cloneItemsAfter(1), vowelPermutations);
+            // Permutations with the vowel repeating twice
+            addPermutationsWithAndWithoutVowels(vowel, prefix + v + v + firstCharacter, s.cloneItemsAfter(1), vowelPermutations);
 
-        for (int i = 0; i < s.length(); i++) {
-            for (char vowel : VOWELS) {
-                vowelPermutations.add(s.substring(0, i) + vowel + s.substring(i));
+            RepeatingCharacter firstPart = s.getFirstItem();
+            if (firstPart != null && firstPart.repeats) {
+                // Permutations if the first character repeats
+                addPermutationsWithAndWithoutVowels(vowel, prefix + firstCharacter + firstCharacter, s.cloneItemsAfter(1), vowelPermutations);
+                // Permutations if the first character repeats and with a single vowel
+                addPermutationsWithAndWithoutVowels(vowel, prefix + v + firstCharacter + firstCharacter, s.cloneItemsAfter(1), vowelPermutations);
+                // Permutations if the first character repeats and with the vowel repeating twice
+                addPermutationsWithAndWithoutVowels(vowel, prefix + v + v + firstCharacter + firstCharacter, s.cloneItemsAfter(1), vowelPermutations);
             }
         }
-        return vowelPermutations;
+    }
+
+    /**
+     * Represents a character within a string and a flag indicating it repeats in the string
+     */
+    private static class RepeatingCharacter {
+        public final String c; // Using String rather than character, so we can have empty strings
+        public boolean repeats;
+
+        public RepeatingCharacter(String c, boolean repeats) {
+            this.c = c;
+            this.repeats = repeats;
+        }
+    }
+
+    /**
+     * Represents the characters in a string in order. If the character repeated consecutively, it will not have multiple entries
+     * in the collection. Instead, there will just be once occurrence of that character (in order) with a flag
+     * indicating it repeats
+     */
+    private static class RepeatingCharacterCollection {
+        public final List<RepeatingCharacter> parts;
+
+        public RepeatingCharacterCollection(List<RepeatingCharacter> parts) {
+            this.parts = parts;
+        }
+
+        public RepeatingCharacter getFirstItem() {
+            if (parts.isEmpty()) {
+                return null;
+            }
+            return parts.get(0);
+        }
+
+        /**
+         * Clones the items in the collection after the specified index
+         */
+        public RepeatingCharacterCollection cloneItemsAfter(int index) {
+            List<RepeatingCharacter> clone = new ArrayList<>();
+            for (int i = index; i < parts.size(); i++) {
+                clone.add(parts.get(i));
+            }
+            return new RepeatingCharacterCollection(clone);
+        }
+
+        public String toString() {
+            return String.join("", parts.stream().map(a -> a.c).collect(Collectors.joining()));
+        }
     }
 }
